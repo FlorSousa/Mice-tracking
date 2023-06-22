@@ -225,7 +225,7 @@ class Thread(QThread):
         self.paused = not self.paused
 
     def set_placeholder(self):
-        image = cv.imread('./icons/placeholder.png')
+        image = cv.imread('gui\icons\placeholder.png')
         image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 
         height, width, _ = image.shape
