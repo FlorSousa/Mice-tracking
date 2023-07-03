@@ -1,5 +1,7 @@
 import os
 import cv2 as cv
+import numpy as np
+from tqdm import tqdm
 from helpers.helpers import *
 
 if __name__ == '__main__':
@@ -18,18 +20,18 @@ if __name__ == '__main__':
     if (not ret):
         format_erro("Error reanding video stream")
 
-    selection_roi_window = 'Region of Interest Selection'
-    cv.namedWindow(selection_roi_window, cv.WINDOW_KEEPRATIO)
-    cv.resizeWindow(selection_roi_window, 1438, 896)
+    window_name = 'Region of Interest Selection'
+    cv.namedWindow(window_name, cv.WINDOW_KEEPRATIO)
+    cv.resizeWindow(window_name, 1438, 896)
     rois = []
 
     while True:
-        roi_actual = cv.selectROI(selection_roi_window, frame, False)
+        roi_actual = cv.selectROI(window_name, frame, False)
         if all(element == 0 for element in roi_actual):
             break
         rois.append(roi_actual)
 
-    cv.destroyWindow(selection_roi_window)
+    cv.destroyWindow(window_name)
 
     rois_counter = [0 for _ in range(len(rois))]
 
@@ -47,3 +49,19 @@ if __name__ == '__main__':
     
     if(args.log_speed):
         write_file(file_path=f"./logs/{args.video.split('/')[-1].split('.')[0]}_speed.csv",text='time,speed\n')
+
+    window_name = 'Tracker'
+    cv.namedWindow(window_name, cv.WINDOW_KEEPRATIO) #Repetiton
+    cv.resizeWindow(window_name, frameWidth, frameHeight) #Repetiton
+
+    lower_white = np.array([100, 100, 100])
+    upper_white = np.array([160, 160, 160])
+
+    previous_pos = (0, 0)
+    current_pos = (0, 0)
+
+    rameIndex = 0
+    traveledDistance = 0
+
+    num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+    pbar = tqdm(total=num_frames)
