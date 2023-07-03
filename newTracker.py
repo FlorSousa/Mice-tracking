@@ -39,7 +39,9 @@ if __name__ == '__main__':
                    frameWidth=frameWidth,
                    frameHeight=frameHeight,
                    frame_rate=args.frame_rate)
-    print(f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv")
+    
+
+    # This work just for linux -> f"./logs/{args.video.split('/')[-1].split('.')[0]
     if(args.log_position):
         write_file(file_path=f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv",text='x,y\n')
     
