@@ -63,3 +63,7 @@ def make_folder(path,folder):
 def write_file(file_path,text,mode="w"):
     with open(file_path, mode) as log_file:
             log_file.write(f'{text}')
+
+def make_window(window_name,ratio,width,height):
+    cv.namedWindow(window_name,ratio)
+    cv.resizeWindow(window_name,width,height)

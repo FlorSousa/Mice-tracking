@@ -1,6 +1,7 @@
 import os
 import cv2 as cv
 import numpy as np
+import platform
 from tqdm import tqdm
 from helpers.helpers import *
 
@@ -21,8 +22,8 @@ if __name__ == '__main__':
         format_erro("Error reanding video stream")
 
     window_name = 'Region of Interest Selection'
-    cv.namedWindow(window_name, cv.WINDOW_KEEPRATIO)
-    cv.resizeWindow(window_name, 1438, 896)
+    make_window(window_name=window_name,ratio=cv.WINDOW_KEEPRATIO,width=frameWidth,height=frameHeight)
+
     rois = []
 
     while True:
@@ -42,17 +43,16 @@ if __name__ == '__main__':
                    frameHeight=frameHeight,
                    frame_rate=args.frame_rate)
     
-
-    # This work just for linux -> f"./logs/{args.video.split('/')[-1].split('.')[0]
     if(args.log_position):
-        write_file(file_path=f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv",text='x,y\n')
+        log_path = "./logs/{}_pos.csv".format(args.video.split('\\')[-1].split('.')[0]) if platform.system() == "Windows" else f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv"
+        write_file(file_path=log_path,text='x,y\n')
     
     if(args.log_speed):
-        write_file(file_path=f"./logs/{args.video.split('/')[-1].split('.')[0]}_speed.csv",text='time,speed\n')
+        log_path = ("./logs/{}_speed.csv".format(args.video.split('\\')[-1].split('.')[0])) if platform.system() == "Windows" else (f"./logs/{args.video.split('/')[-1].split('.')[0]}_speed.csv")
+        write_file(file_path=log_path,text='time,speed\n')
 
     window_name = 'Tracker'
-    cv.namedWindow(window_name, cv.WINDOW_KEEPRATIO) #Repetiton
-    cv.resizeWindow(window_name, frameWidth, frameHeight) #Repetiton
+    make_window(window_name=window_name,ratio=cv.WINDOW_KEEPRATIO,width=frameWidth,height=frameHeight)
 
     lower_white = np.array([100, 100, 100])
     upper_white = np.array([160, 160, 160])
@@ -65,3 +65,7 @@ if __name__ == '__main__':
 
     num_frames = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     pbar = tqdm(total=num_frames)
+
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        pbar.update(1)
