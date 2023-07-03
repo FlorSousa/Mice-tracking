@@ -81,7 +81,6 @@ if __name__ == '__main__':
 
     # Counter for each selected region    
     rois_counter = [ 0 for _ in range(len(rois)) ]
-    statsLogFile = f"./logs/{args.video.split('/')[-1].split('.')[0]}_stats.txt"
 
     if(args.save_video):
         resultFileName = f"{args.video.split('/')[-1].split('.')[0]}_result.avi"
@@ -93,15 +92,10 @@ if __name__ == '__main__':
         )
 
     # Check whether it's necessary to create a logs directory
-    if(args.log_stats or args.log_position or args.log_speed):
+    if(args.log_position or args.log_speed):
         if(not path.exists('./logs')):
             mkdir('./logs')
 
-    # Create file for stats loging
-    statsLogFile = f"./logs/{args.video.split('/')[-1].split('.')[0]}_stats.txt"
-    if(args.log_stats):
-        with open(statsLogFile, 'w') as log_file:
-            log_file.write('')
 
     # Create file for position loging
     posLogFile = f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv"
@@ -117,7 +111,7 @@ if __name__ == '__main__':
 
     result_win = 'Tracker'
     cv.namedWindow(result_win, cv.WINDOW_KEEPRATIO)
-    cv.resizeWindow(result_win, 640, 528)
+    cv.resizeWindow(result_win, frameWidth, frameHeight)
 
     # Color range of the mice un the subtracted image
     lower_white = np.array([100, 100, 100])
@@ -197,7 +191,7 @@ if __name__ == '__main__':
         if(rois is not None):
 
             for index, roi in enumerate(rois):
-                x, y, w, h = roi
+                x, y, w, h = rois
                 
                 if(any(current_pos)):
                     if(x <= current_pos[0] <= x+w and y <= current_pos[1] <= y+h):
@@ -239,17 +233,6 @@ if __name__ == '__main__':
                         0.5, (255, 255, 255)
                     )
 
-            if(args.log_stats):
-                # Saves the rois counter to file
-                with open(statsLogFile, 'w') as log_file:
-                    
-                    log_file.write(f'\tCounters for the regions considering {args.frame_rate}fps video\n')
-                    log_file.write(f'\n- Traveled distance: {traveledDistance:.3f} pixels\n')
-
-                    log_file.write('\n- Time in spent in each region:\n')
-                    for idx, region in enumerate(rois_counter):
-                        log_file.write(f'\tRegion {idx}:\t{rois_counter[idx]} frames')
-                        log_file.write(f', {rois_counter[idx] * (1/float(args.frame_rate)):.3f}s\n')
 
         # Save position to file
         if(args.log_position):

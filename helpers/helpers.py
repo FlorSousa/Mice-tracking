@@ -1,4 +1,6 @@
 import argparse
+import cv2 as cv
+from os import mkdir
 
 #incomplete
 def format_erro(mensagem):
@@ -46,3 +48,18 @@ def parser_args():
     )
     
     return parser.parse_args()
+
+def save_video(filename,frameWidth,frameHeight,frame_rate, encode=cv.VideoWriter_fourcc('M', 'J', 'P', 'G')):
+        try:
+            cv.VideoWriter(filename,encode,frame_rate, (frameWidth, frameHeight))
+            return True
+        except:
+             return False
+        
+def make_folder(path,folder):
+    if (not path.exists(folder)):
+            mkdir(folder)
+
+def write_file(file_path,text,mode="w"):
+    with open(file_path, mode) as log_file:
+            log_file.write(f'{text}')
