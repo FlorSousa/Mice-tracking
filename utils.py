@@ -1,6 +1,10 @@
-from math import atan2, cos, sin, sqrt, pi
-import numpy as np
+import argparse
+import platform
 import cv2 as cv
+import numpy as np
+from os import mkdir
+from math import atan2, cos, sin, sqrt, pi
+
 
 def drawAxis(img, p_, q_, colour, scale):
     p = list(p_)
@@ -58,3 +62,94 @@ def getOrientation(pts, img, draw):
     angle = atan2(eigenvectors[0, 1], eigenvectors[0, 0])
 
     return cntr, angle
+
+#incomplete
+def format_erro(mensagem):
+    print(f"Error: {mensagem}")
+    exit()
+    
+def parser_args():
+    parser = argparse.ArgumentParser(
+        description='Tracks mice.'
+    )
+
+    parser.add_argument(
+        'video', type=str,
+        help='Path to the video file to be processed.'
+    )
+
+    parser.add_argument(
+        'frame_rate', type=int,
+        help='Frame rate of the video file to be processed.'
+    )
+
+    parser.add_argument(
+        '--draw-axis', action='store_true',
+        help='Draw both PCA axis.'
+    )
+
+    parser.add_argument(
+        '--save-video', action='store_true',
+        help='Create a video file with the analysis result.'
+    )
+
+    parser.add_argument(
+        '--color-mask', action='store_true',
+        help='Draw a colored mask over the detection.'
+    )
+
+    parser.add_argument(
+        '--log-position', action='store_true',
+        help='Logs the position of the center of mass to file.'
+    )
+
+    parser.add_argument(
+        '--log-speed', action='store_true',
+        help='Logs the speed of the center of mass to file.'
+    )
+    
+    return parser.parse_args()
+
+def save_video(filename,frameWidth,frameHeight,frame_rate, encode=cv.VideoWriter_fourcc('M', 'J', 'P', 'G')):
+        try:
+            cv.VideoWriter(filename,encode,frame_rate, (frameWidth, frameHeight))
+            return True
+        except:
+             return False
+        
+def make_folder(path,folder):
+    if (not path.exists(folder)):
+            mkdir(folder)
+
+def write_file(file_path,text,mode="w"):
+    with open(file_path, mode) as log_file:
+            log_file.write(f'{text}')
+
+def make_window(window_name,ratio,width,height):
+    cv.namedWindow(window_name,ratio)
+    cv.resizeWindow(window_name,width,height)
+
+def apply_morphological_filter(actual_frame,background_frame,lower_white,upper_white):
+        sub_frame = cv.absdiff(actual_frame, background_frame)
+
+        filtered_frame = cv.inRange(sub_frame, lower_white, upper_white)
+
+        # Kernel for morphological operation opening
+        kernel3 = cv.getStructuringElement(
+            cv.MORPH_ELLIPSE,
+            (3, 3),
+            (-1, -1)
+        )
+
+        kernel20 = cv.getStructuringElement(
+            cv.MORPH_ELLIPSE,
+            (20, 20),
+            (-1, -1)
+        )
+
+        # Morphological opening
+        return cv.dilate(cv.erode(filtered_frame, kernel3), kernel20)
+
+def get_path(args,log_type):
+    path = args.video.split('\\')[-1].split('.')[0] if platform.system() == "Windows" else f"./logs/{args.video.split('/')[-1].split('.')[0]}"
+    return "./logs/{}_{}.csv".format(path,log_type)

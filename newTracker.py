@@ -1,9 +1,8 @@
 import os
 import cv2 as cv
 import numpy as np
-import platform
 from tqdm import tqdm
-from helpers.helpers import *
+from utils import *
 
 def roi_selection(capture):
     if (not capture.isOpened()):
@@ -37,12 +36,10 @@ def roi_selection(capture):
                    frame_rate=args.frame_rate)
     
     if(args.log_position):
-        log_path = "./logs/{}_pos.csv".format(args.video.split('\\')[-1].split('.')[0]) if platform.system() == "Windows" else f"./logs/{args.video.split('/')[-1].split('.')[0]}_pos.csv"
-        write_file(file_path=log_path,text='x,y\n')
+        write_file(file_path=get_path(args,"position"),text='x,y\n')
     
     if(args.log_speed):
-        log_path = ("./logs/{}_speed.csv".format(args.video.split('\\')[-1].split('.')[0])) if platform.system() == "Windows" else (f"./logs/{args.video.split('/')[-1].split('.')[0]}_speed.csv")
-        write_file(file_path=log_path,text='time,speed\n')
+        write_file(file_path=get_path(args,"speed") ,text='time,speed\n')
     
     return {"rois_counter":rois_counter,"background_frame":frame}
 
@@ -59,7 +56,7 @@ if __name__ == '__main__':
 
     lower_white = np.array([100, 100, 100])
     upper_white = np.array([160, 160, 160])
-
+    frameIndex = 0
     previous_pos = (0, 0)
     current_pos = (0, 0)
 
@@ -71,5 +68,32 @@ if __name__ == '__main__':
 
     while(cap.isOpened()):
         ret, frame = cap.read()
+        if(not ret):
+            print('Error readning video stream')
+            pbar.close()
+            exit()
+        
+        mask = apply_morphological_filter(actual_frame=frame,background_frame=selection["background_frame"],lower_white=lower_white,upper_white=upper_white)
+        returns = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
+        contours = returns[1] if len(returns) == 3 else returns[0]
+        
+        if(len(contours) != 0):
+            # find the biggest countour by the area
+            contour = max(contours, key = cv.contourArea)
+            cv.drawContours(frame, [contour], 0, (255, 0, 255), 2)
+
+            # Find the orientation of each shape
+            current_pos, _ = getOrientation(contour, frame, args.draw_axis)
+
+        speed = np.sqrt(
+            (previous_pos[0] - current_pos[0])**2 + 
+            (previous_pos[1] - current_pos[1])**2
+        )
+
+        traveledDistance += speed
+        previous_pos = current_pos
+        if(args.log_speed and current_pos[0] > 50 and current_pos[1] > 50):     
+                write_file(file_path = get_path(args,"speed"),text = f'{frameIndex * (1/float(args.frame_rate)):.3f},{speed:.3f}\n',mode="a")
+                
         pbar.update(1)
         
