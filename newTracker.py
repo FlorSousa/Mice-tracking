@@ -5,18 +5,11 @@ import platform
 from tqdm import tqdm
 from helpers.helpers import *
 
-if __name__ == '__main__':
-    make_folder(path=os.path,folder="./logs")
-    args = parser_args()
-    cap = cv.VideoCapture(args.video)
-    frameWidth = int(cap.get(3))
-    frameHeight = int(cap.get(4))
-
-    if (not cap.isOpened()):
+def roi_selection(capture):
+    if (not capture.isOpened()):
         format_erro("opening video stream")
 
-    ret, frame = cap.read()
-    background_frame = frame
+    ret, frame = capture.read()
 
     if (not ret):
         format_erro("Error reanding video stream")
@@ -50,6 +43,16 @@ if __name__ == '__main__':
     if(args.log_speed):
         log_path = ("./logs/{}_speed.csv".format(args.video.split('\\')[-1].split('.')[0])) if platform.system() == "Windows" else (f"./logs/{args.video.split('/')[-1].split('.')[0]}_speed.csv")
         write_file(file_path=log_path,text='time,speed\n')
+    
+    return {"rois_counter":rois_counter,"background_frame":frame}
+
+if __name__ == '__main__':
+    make_folder(path=os.path,folder="./logs")
+    args = parser_args()
+    cap = cv.VideoCapture(args.video)
+    frameWidth = int(cap.get(3))
+    frameHeight = int(cap.get(4))
+    selection = roi_selection(capture=cap)
 
     window_name = 'Tracker'
     make_window(window_name=window_name,ratio=cv.WINDOW_KEEPRATIO,width=frameWidth,height=frameHeight)
@@ -69,3 +72,4 @@ if __name__ == '__main__':
     while(cap.isOpened()):
         ret, frame = cap.read()
         pbar.update(1)
+        
