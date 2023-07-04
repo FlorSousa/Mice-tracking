@@ -69,7 +69,7 @@ if __name__ == '__main__':
     while(cap.isOpened()):
         ret, frame = cap.read()
         if(not ret):
-            print('Error readning video stream')
+            format_erro("reading video stream")
             pbar.close()
             exit()
         
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             cv.drawContours(frame, [contour], 0, (255, 0, 255), 2)
 
             # Find the orientation of each shape
-            current_pos, _ = getOrientation(contour, frame, args.draw_axis)
+            current_pos = getOrientation(contour, frame, args.draw_axis)["center"]
 
         speed = np.sqrt(
             (previous_pos[0] - current_pos[0])**2 + 
@@ -94,6 +94,5 @@ if __name__ == '__main__':
         previous_pos = current_pos
         if(args.log_speed and current_pos[0] > 50 and current_pos[1] > 50):     
                 write_file(file_path = get_path(args,"speed"),text = f'{frameIndex * (1/float(args.frame_rate)):.3f},{speed:.3f}\n',mode="a")
-                
         pbar.update(1)
         

@@ -41,27 +41,27 @@ def getOrientation(pts, img, draw):
     mean, eigenvectors, eigenvalues = cv.PCACompute2(data_pts, mean)
 
     # Store the center of the object
-    cntr = (int(mean[0, 0]), int(mean[0, 1]))
+    center = (int(mean[0, 0]), int(mean[0, 1]))
 
     # Draw the principal components
-    cv.circle(img, cntr, 3, (42, 89, 247), -1)
+    cv.circle(img, center, 3, (42, 89, 247), -1)
     p1 = (
-        cntr[0] + 0.02 * eigenvectors[0, 0] * eigenvalues[0, 0],
-        cntr[1] + 0.02 * eigenvectors[0, 1] * eigenvalues[0, 0]
+        center[0] + 0.02 * eigenvectors[0, 0] * eigenvalues[0, 0],
+        center[1] + 0.02 * eigenvectors[0, 1] * eigenvalues[0, 0]
     )
     p2 = (
-        cntr[0] - 0.02 * eigenvectors[1,0] * eigenvalues[1,0],
-        cntr[1] - 0.02 * eigenvectors[1,1] * eigenvalues[1,0]
+        center[0] - 0.02 * eigenvectors[1,0] * eigenvalues[1,0],
+        center[1] - 0.02 * eigenvectors[1,1] * eigenvalues[1,0]
     )
 
     if(draw):
-        drawAxis(img, cntr, p1, (91, 249, 77), 2)
-        drawAxis(img, cntr, p2, (190, 192, 91), 2)
+        drawAxis(img, center, p1, (91, 249, 77), 2)
+        drawAxis(img, center, p2, (190, 192, 91), 2)
 
     # orientation in radians
     angle = atan2(eigenvectors[0, 1], eigenvectors[0, 0])
 
-    return cntr, angle
+    return {"center":center,"angle":angle}
 
 #incomplete
 def format_erro(mensagem):
