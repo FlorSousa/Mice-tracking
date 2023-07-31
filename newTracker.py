@@ -44,7 +44,7 @@ def roi_selection(capture):
     if(args.log_speed):
         write_file(file_path=get_path(args,"speed") ,text='time,speed\n')
     
-    return {"rois_counter":rois_counter,"background_frame":frame}
+    return [rois,rois_counter,frame]
 
 if __name__ == '__main__':
     make_folder(path=os.path,folder="./logs")
@@ -52,8 +52,7 @@ if __name__ == '__main__':
     cap = cv.VideoCapture(args.video)
     frameWidth = int(cap.get(3))
     frameHeight = int(cap.get(4))
-    selection = roi_selection(capture=cap)
-
+    rois, rois_counter, background_frame = roi_selection(capture=cap)
     window_name = 'Tracker'
     make_window(window_name=window_name,ratio=cv.WINDOW_KEEPRATIO,width=frameWidth,height=frameHeight)
 
@@ -75,7 +74,7 @@ if __name__ == '__main__':
             format_erro("reading video stream")
             pbar.close()
             exit()
-        sub_frame = cv.absdiff(frame, selection["background_frame"])
+        sub_frame = cv.absdiff(frame, background_frame)
 
         filtered_frame = cv.inRange(sub_frame, lower_white, upper_white)
         
@@ -91,7 +90,7 @@ if __name__ == '__main__':
             (-1, -1)
         )
 
-        mask = apply_morphological_filter(actual_frame=frame,background_frame=selection["background_frame"],lower_white=lower_white,upper_white=upper_white)
+        mask = apply_morphological_filter(actual_frame=frame,background_frame=background_frame,lower_white=lower_white,upper_white=upper_white)
         returns = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
         contours = returns[1] if len(returns) == 3 else returns[0]
         
@@ -113,7 +112,6 @@ if __name__ == '__main__':
         if(args.log_speed and current_pos[0] > 50 and current_pos[1] > 50):     
                 write_file(file_path = get_path(args,"speed"),text = f'{frameIndex * (1/float(args.frame_rate)):.3f},{speed:.3f}\n',mode="a")
 
-        rois = selection["rois_counter"]
         if  rois is not None:
             for index, roi in enumerate(rois):
                 x, y, w, h = roi
