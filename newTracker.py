@@ -4,6 +4,9 @@ import numpy as np
 from tqdm import tqdm
 from utils import *
 
+def analyzer():
+    pass
+
 def roi_selection(capture):
     if (not capture.isOpened()):
         format_erro("opening video stream")
@@ -72,7 +75,22 @@ if __name__ == '__main__':
             format_erro("reading video stream")
             pbar.close()
             exit()
+        sub_frame = cv.absdiff(frame, selection["background_frame"])
+
+        filtered_frame = cv.inRange(sub_frame, lower_white, upper_white)
         
+        kernel3 = cv.getStructuringElement(
+            cv.MORPH_ELLIPSE,
+            (3, 3),
+            (-1, -1)
+        )
+
+        kernel20 = cv.getStructuringElement(
+            cv.MORPH_ELLIPSE,
+            (20, 20),
+            (-1, -1)
+        )
+
         mask = apply_morphological_filter(actual_frame=frame,background_frame=selection["background_frame"],lower_white=lower_white,upper_white=upper_white)
         returns = cv.findContours(mask, cv.RETR_LIST, cv.CHAIN_APPROX_NONE)
         contours = returns[1] if len(returns) == 3 else returns[0]
@@ -94,5 +112,12 @@ if __name__ == '__main__':
         previous_pos = current_pos
         if(args.log_speed and current_pos[0] > 50 and current_pos[1] > 50):     
                 write_file(file_path = get_path(args,"speed"),text = f'{frameIndex * (1/float(args.frame_rate)):.3f},{speed:.3f}\n',mode="a")
+
+        rois = selection["rois_counter"]
+        if  rois is not None:
+            for index, roi in enumerate(rois):
+                x, y, w, h = roi
+
+                
+
         pbar.update(1)
-        
